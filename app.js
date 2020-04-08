@@ -4,6 +4,14 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
+const mongoose = require('mongoose')
+const url = 'mongodb://localhost:27017/conFusion'
+const connect = mongoose.connect(url);
+
+connect.then((db)=>{
+  console.log("connected to the DB SUCCESFULLY");
+})
+
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 const dishRouter = require('./routes/dishRouter')
