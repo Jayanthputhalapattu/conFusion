@@ -3,11 +3,11 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-
+var session = require('express-session')
 const mongoose = require('mongoose')
 const url = 'mongodb://localhost:27017/conFusion'
 const connect = mongoose.connect(url);
-
+var FileStore = require('session-file-store')(session)
 connect.then((db)=>{
   console.log("connected to the DB SUCCESFULLY");
 })
@@ -27,39 +27,41 @@ app.set('view engine', 'jade');
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
+// app.use(cookieParser('1234-5678-01234'));
+app.use(session({
+  name :'session-id',
+  secret :'1234-5678-01234',
+  saveUninitialized :false,
+  resave:false,
+  store: new FileStore()
+}))
+app.use('/', indexRouter);
+app.use('/users', usersRouter);
 
 function auth(req,res,next){
-  console.log(req.headers);
-  var authHeader = req.headers.authorization;
-  if (!authHeader){
-    var err = new Error("U are not authenticated");
-    res.setHeader('WWW-Authenticate', 'Basic');
-    err.status = 401;
+if (!req.session.user){
+ var err = new Error('YOu are not authenticated')
+    err.status = 403;
     next(err);
-    return
-  }
-  var auth = new Buffer.from(authHeader.split(' ')[1],'base64').toString().split(':')
-  var user = auth[0];
-  var pass = auth[1];
-  if (user==='admin' && pass==='password'){
-    next()
-  }
-  else{
-    var err = new Error("U are not authenticated");
-    res.setHeader('WWW-Authenticate','Basic');
-    err.status = 401;
-    next(err);
-   
-  }
+}
+ 
+   else{
+   if (req.session.user==='authenticated'){
+     next()
+   }
+   else{
+    var err = new Error('You are not authenticated!');
+          err.status = 403;
+         return next(err);
+   }
+ }
 }
 
 
 app.use(auth);
 app.use(express.static(path.join(__dirname + 'public')));
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
+
 app.use('/dishes',dishRouter);
 app.use('/promotions',promoRouter);
 app.use('/leaders',leaderRouter)
