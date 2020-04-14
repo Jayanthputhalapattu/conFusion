@@ -4,12 +4,17 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var session = require('express-session')
-const mongoose = require('mongoose')
-const url = 'mongodb://localhost:27017/conFusion'
+const mongoose = require('mongoose');
+var configure = require('./configure');
+const url = configure.mongoUrl;
 const connect = mongoose.connect(url);
 var FileStore = require('session-file-store')(session)
 var passport = require('passport');
 var authenticate = require('./authenticate')
+
+
+
+
 
 connect.then((db)=>{
   console.log("connected to the DB SUCCESFULLY");
@@ -32,34 +37,23 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 // app.use(cookieParser('1234-5678-01234'));
 
-app.use(session({
-  name :'session-id',
-  secret :'1234-5678-01234',
-  saveUninitialized :false,
-  resave:false,
-  store: new FileStore()
-}))
-app.use(passport.initialize());
-app.use(passport.session());
+// app.use(session({
+//   name :'session-id',
+//   secret :'1234-5678-01234',
+//   saveUninitialized :false,
+//   resave:false,
+//   store: new FileStore()
+// }))
+// https://jwt.io/#debugger-io?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZTk1NTYzNDhlNmViYTVhZWM2ODczMDciLCJpYXQiOjE1ODY4NDUyNjQsImV4cCI6MTU4Njg0ODg2NH0.1RCyFW4YAzidGpCMiMxvkK-sZ5Ib0pUTTDS-TotT5L4
+ app.use(passport.initialize());
+
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
 
-function auth(req,res,next){
-      console.log(req.user);
-      if (!req.user){
-        var err = new Error("You are not auhenticated");
-        err.status = 403;
-        next(err);
-      }
-     else{
-       next();
-     }
-}
 
 
-app.use(auth);
 app.use(express.static(path.join(__dirname + 'public')));
 
 
