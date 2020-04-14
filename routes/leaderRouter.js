@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 
 
 const leaderRouter =  express.Router();
+const authenticate = require('../authenticate')
 const Leaders = require('../models/leaders')
 leaderRouter.route('/')
 .get((req,res,next)=>{
