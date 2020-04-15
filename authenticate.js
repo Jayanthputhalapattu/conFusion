@@ -34,4 +34,18 @@ exports.jwtPassport = passport.use(new JwtStrategy(opts,(jwt_payload,done)=>{
        })
 }))
 
-exports.verifyUser = passport.authenticate('jwt',{session : false})
+exports.verifyUser = passport.authenticate('jwt',{session : false});
+
+exports.verifyAdmin = (req,res,next)=>{
+    if (!req.user.admin){
+        var err = Error("Only admins are allowed");
+            err.status = 403;
+            next(err);
+            return
+        
+          
+    }
+    else{
+       next()
+    }
+}
